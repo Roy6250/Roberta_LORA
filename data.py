@@ -13,6 +13,7 @@ import datasets
 
 from torch import nn
 from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
 
 from tqdm.auto import trange, tqdm
 import evaluate
@@ -24,7 +25,19 @@ class SquadDataLoader:
         self.tokenizer = tokenizer
         self.batch_size = batch_size
 
-        self.dataset = datasets.load_dataset("squad_v2",split={"train":"train[:1000]"})
+        self.dataset = datasets.load_dataset("squad_v2")
+        # Split the train set into train and validation sets
+        # ,split={"train":"train[:1000]"}
+
+        # train_data = self.dataset["train"].select(range(0, 1000))
+        # val_data = self.dataset["train"].select(range(1000, 1100))
+        # self.dataset = {
+        #     "train": train_data,
+        #     "val": val_data
+        # }
+        split_dataset = self.dataset['train'].train_test_split(test_size=0.1, seed=42)
+        self.dataset['train'] = split_dataset['train']        # self.dataset['train'] = split_dataset['train']
+        self.dataset['val'] = split_dataset['test']
         self.metric = evaluate.load("squad_v2")
         self.debug = debug
         self.non_answerable = 0
